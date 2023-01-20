@@ -98,6 +98,11 @@ QuadrupedController::QuadrupedController(ros::NodeHandle *nh, ros::NodeHandle *p
     nh->param<std::string>("mode", this->mode, "client");
     nh->param<std::string>("locator", this->locator, "tcp/192.168.86.134:7447");
 
+    ROS_INFO("Zenoh Mode is : %s", this->mode.c_str());
+    ROS_INFO("Zenoh locator is: %s", this->locator.c_str());
+
+
+
     z_owned_config_t z_config = z_config_default();
 
     // Default config for the time being

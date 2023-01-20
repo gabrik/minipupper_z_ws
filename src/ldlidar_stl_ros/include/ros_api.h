@@ -2,7 +2,7 @@
  * @file ros_api.h
  * @author LDRobot (support@ldrobot.com)
  * @brief  ros lib interface
- *         This code is only applicable to LDROBOT LiDAR products 
+ *         This code is only applicable to LDROBOT LiDAR products
  * sold by Shenzhen LDROBOT Co., LTD
  * @version 0.1
  * @date 2021-10-28

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ldlidar_stl_zenoh</name>
+  <version>3.0.0</version>
+  <description>The ldlidar package that sends on zenoh</description>
+
+  <maintainer email="jane.doe@example.com">Jane Doe</maintainer>
+
+  <license>EPLv2.0</license>
+
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+
+  <depend>sensor_msgs</depend>
+
+</package>

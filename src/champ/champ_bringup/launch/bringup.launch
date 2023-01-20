@@ -19,6 +19,8 @@
     <arg name="publish_local_odom_tf"  default="true" />
     <arg name="run_state_estimation"   default="true" />
     <arg name="close_loop_odom"        default="false" />
+    <arg name="mode" default="client"/>
+    <arg name="locator" default="tcp/192.168.86.134:7447"/>
 
     <group ns="$(arg robot_name)">
         <param name="tf_prefix" value="$(arg robot_name)"/>
@@ -57,6 +59,8 @@
             <param                                    name="publish_foot_contacts"  value="$(arg publish_foot_contacts)" />
             <param                                    name="publish_joint_control"  value="$(arg publish_joint_control)" />
             <param                                    name="joint_controller_topic" value="$(arg joint_controller_topic)" />
+            <param name="locator" value="$(arg locator)"/>
+            <param name="mode" value="$(arg mode)"/>
         </node>
 
         <!-- ==================== STATE ESTIMATION ==================== -->

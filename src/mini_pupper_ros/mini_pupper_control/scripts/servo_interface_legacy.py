@@ -108,14 +108,27 @@ def callback(data):
     set_servo_angle(4, servo_offset[11]+90+lb2_position+lb3_position)
 
 
-def servos_thr():
+# def servos_thr():
+#     global flag
+#     while flag:
+#         try:
+#             global msg_queue
+#             msg = msg_queue.get(block=False, timeout=1/1000)
+#             callback(msg)
+#             time.sleep(1/400)
+#         except:
+#             pass
+#     print('Received Ctrl-C bye!')
+
+
+def servos_thr(sub):
+    msg = JointTrajectory()
     global flag
     while flag:
         try:
-            global msg_queue
-            msg = msg_queue.get(block=False, timeout=1/1000)
-            callback(msg)
-            time.sleep(1/400)
+            for sample in sub.receiver.get(timeout=1/1000):
+                msg.deserialize(sample.payload)
+                callback(msg)
         except:
             pass
     print('Received Ctrl-C bye!')
@@ -148,12 +161,12 @@ def listener():
     z_config.insert_json5(zenoh.config.MODE_KEY, json.dumps(z_mode))
     z_config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([z_connect]))
     z_session = zenoh.open(z_config)
-    # init zenoh
 
-    sub = z_session.declare_subscriber("r", z_listener)
+    # sub = z_session.declare_subscriber("r", z_listener)
+    sub = z_session.declare_subscriber("r", zenoh.Queue())
 
 
-    servos = Thread(target=servos_thr)
+    servos = Thread(target=servos_thr, args=(sub, ))
     servos.start()
 
     signal.signal(signal.SIGINT, handler)
