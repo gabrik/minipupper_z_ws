@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   z_owned_subscriber_t z_scan_subscriber;
 
 
-
+   nh_private.param<std::string>("topic_name", topic_name, "scan");
   nh_private.param<std::string>("mode", mode, "client");
   nh_private.param<std::string>("locator", locator, "tcp/192.168.86.134:7447");
 
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 
   ros::Rate r(10); //10hz
 
-  ROS_INFO("Publish topic message:ldlidar scan data .");
+  ROS_WARN("Publish topic message:ldlidar on %s.", topic_name.c_str());
 
   while (ros::ok()) {
 

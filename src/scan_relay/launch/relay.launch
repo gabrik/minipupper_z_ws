@@ -9,4 +9,5 @@
   <param name="mode" value="$(arg mode)"/>
   <param name="locator" value="$(arg locator)"/>
   <param name="topic_name" value="$(arg topic_name)"/>
+ </node>
 </launch>
