@@ -126,7 +126,7 @@ zenohd
 Then start the robot brain
 
 ```sh
-roslaunch mini_pupper_bringup brain.launch
+roslaunch mini_pupper_bringup brain.launch locator:=tcp/127.0.0.1:7447
 ```
 
 and the telop on another terminal
@@ -140,7 +140,7 @@ rosrun teleop_twist_keyboard teleop_twist_keyboard.py
 **You should run this command on Mini Pupper**
 
 ```sh
-roslaunch mini_pupper_bringup servos.launch
+roslaunch mini_pupper_bringup servos.launch locator:=<your zenoh locator>
 ```
 
 If you don't have LD06 LiDAR, add `lidar_connected:=false` argument like the follwoing command.

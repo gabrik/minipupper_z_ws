@@ -46,12 +46,7 @@ int main(int argc, char **argv) {
   std::string product_name;
 	std::string topic_name;
 	std::string port_name;
-  std::string frame_id;
   int serial_port_baudrate;
-  bool laser_scan_dir;
-  bool enable_angle_crop_func;
-  double angle_crop_min;
-  double angle_crop_max;
   LaserScanSetting setting;
   ldlidar::LDType type_name;
 
@@ -73,7 +68,7 @@ int main(int argc, char **argv) {
     .default_value(std::string("scan"));
 
   program.add_argument("--frame_id")
-    .help("display the square of a given integer")
+    .help("ROS name of the lidar frame")
     .default_value(std::string("base_laser"));
 
   program.add_argument("--port_name")
@@ -103,11 +98,11 @@ int main(int argc, char **argv) {
     .default_value(double(0.0));
 
   program.add_argument("--mode")
-    .help("angle crop end (radiants)")
+    .help("zenoh mode")
     .default_value(std::string("client"));
 
   program.add_argument("--connect")
-    .help("angle crop end (radiants)")
+    .help("zenoh locator to connect")
     .default_value(std::string("tcp/127.0.0.1:7447"));
 
 
@@ -122,29 +117,29 @@ int main(int argc, char **argv) {
 
   product_name = program.get<std::string>("--product_name");
   topic_name = program.get<std::string>("--topic_name");
-  frame_id = program.get<std::string>("--frame_id");
+  setting.frame_id = program.get<std::string>("--frame_id");
   port_name = program.get<std::string>("--port_name");
   serial_port_baudrate = program.get<int>("--port_baudrate");
-  laser_scan_dir = program.get<bool>("--laser_scan_dir");
-  enable_angle_crop_func = program.get<bool>("--enable_angle_crop_func");
-  angle_crop_min = program.get<double>("--angle_crop_min");
-  angle_crop_max = program.get<double>("--angle_crop_max");
+  setting.laser_scan_dir = program.get<bool>("--no_laser_scan_dir");
+  setting.enable_angle_crop_func = program.get<bool>("--enable_angle_crop_func");
+  setting.angle_crop_min = program.get<double>("--angle_crop_min");
+  setting.angle_crop_max = program.get<double>("--angle_crop_max");
   mode = program.get<std::string>("--mode");
-  locator = program.get<std::string>("--topic_nlocatorame");
+  locator = program.get<std::string>("--connect");
 
 
 
-  printf("LDLiDAR SDK Pack Version is: %s", ldlidarnode->GetLidarSdkVersionNumber().c_str());
-  printf("ROS params input:");
-  printf("<product_name>: %s", product_name.c_str());
-  printf("<topic_name>: %s", topic_name.c_str());
-  printf("<frame_id>: %s", setting.frame_id.c_str());
-  printf("<port_name>: %s", port_name.c_str());
-  printf("<port_baudrate>: %d", serial_port_baudrate);
-  printf("<laser_scan_dir>: %s", (setting.laser_scan_dir?"Counterclockwise":"Clockwise"));
-  printf("<enable_angle_crop_func>: %s", (setting.enable_angle_crop_func?"true":"false"));
-  printf("<angle_crop_min>: %f", setting.angle_crop_min);
-  printf("<angle_crop_max>: %f", setting.angle_crop_max);
+  printf("LDLiDAR SDK Pack Version is: %s\n", ldlidarnode->GetLidarSdkVersionNumber().c_str());
+  printf("ROS params input:\n");
+  printf("<product_name>: %s\n", product_name.c_str());
+  printf("<topic_name>: %s\n", topic_name.c_str());
+  printf("<frame_id>: %s\n", setting.frame_id.c_str());
+  printf("<port_name>: %s\n", port_name.c_str());
+  printf("<port_baudrate>: %d\n", serial_port_baudrate);
+  printf("<laser_scan_dir>: %s\n", (setting.laser_scan_dir?"Counterclockwise":"Clockwise"));
+  printf("<enable_angle_crop_func>: %s\n", (setting.enable_angle_crop_func?"true":"false"));
+  printf("<angle_crop_min>: %f\n", setting.angle_crop_min);
+  printf("<angle_crop_max>: %f\n", setting.angle_crop_max);
 
   if (product_name == "LDLiDAR_LD06") {
     type_name = ldlidar::LDType::LD_06;
@@ -160,16 +155,16 @@ int main(int argc, char **argv) {
   ldlidarnode->EnableFilterAlgorithnmProcess(true);
 
   if (ldlidarnode->Start(type_name, port_name, serial_port_baudrate, ldlidar::COMM_SERIAL_MODE)) {
-    printf("ldlidar node start is success");
+    printf("ldlidar node start is success\n");
   } else {
-    printf("ldlidar node start is fail");
+    printf("ldlidar node start is fail\n");
     exit(EXIT_FAILURE);
   }
 
   if (ldlidarnode->WaitLidarCommConnect(3000)) {
-    printf("ldlidar communication is normal.");
+    printf("ldlidar communication is normal.\n");
   } else {
-    printf("ldlidar communication is abnormal.");
+    printf("ldlidar communication is abnormal.\n");
     exit(EXIT_FAILURE);
   }
 
@@ -188,7 +183,7 @@ int main(int argc, char **argv) {
 
     // Start read and lease tasks for zenoh-pico
     if (zp_start_read_task(z_session_loan(&z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&z_session), NULL) < 0) {
-        printf("Unable to start read and lease tasks");
+        printf("Unable to start read and lease tasks\n");
         exit(EXIT_FAILURE);
     }
 
@@ -201,7 +196,10 @@ int main(int argc, char **argv) {
 
   ldlidar::Points2D laser_scan_points;
   double lidar_scan_freq;
-  printf("Publish topic message:ldlidar scan data .");
+  printf("Publish topic message:ldlidar scan data on %s.\n", topic_name.c_str());
+
+  ros::Time::init();
+
 
   while (true) {
 
@@ -211,7 +209,7 @@ int main(int argc, char **argv) {
         ToLaserscanMessagePublish(laser_scan_points, lidar_scan_freq, setting, z_scan_publisher );
         break;
       case ldlidar::LidarStatus::DATA_TIME_OUT:
-        printf("get ldlidar data is time out, please check your lidar device.");
+        printf("get ldlidar data is time out, please check your lidar device.\n");
         break;
       case ldlidar::LidarStatus::DATA_WAIT:
         break;
@@ -291,7 +289,7 @@ void  ToLaserscanMessagePublish(ldlidar::Points2D& src, double lidar_spin_freq,
       int index = static_cast<int>(ceil((angle - angle_min) / angle_increment));
       if (index < beam_size) {
         if (index < 0) {
-          printf("[ldrobot] error index: %d, beam_size: %d, angle: %f, angle_min: %f, angle_increment: %f",
+          printf("[ldrobot] error index: %d, beam_size: %d, angle: %f, angle_min: %f, angle_increment: %f\n",
               index, beam_size, angle, angle_min, angle_increment);
         }
 
