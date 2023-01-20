@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 
   program.add_argument("--connect")
     .help("angle crop end (radiants)")
-    .default_value(std::string("tcp/127.0.0.1"));
+    .default_value(std::string("tcp/127.0.0.1:7447"));
 
 
   try {
