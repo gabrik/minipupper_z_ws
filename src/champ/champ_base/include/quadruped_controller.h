@@ -53,7 +53,7 @@ extern "C" {
   #include "zenoh-pico.h"
 }
 
-void z_cmd_vel_cb(const z_sample_t *sample, void *ctx);
+// void z_cmd_vel_cb(const z_sample_t *sample, void *ctx);
 
 class QuadrupedController
 {
@@ -66,16 +66,19 @@ class QuadrupedController
     z_owned_session_t z_session;
 
     // Zenoh subscribers
-    z_owned_subscriber_t z_cmd_vel_subscriber;
-    z_owned_subscriber_t z_cmd_pose_subscriber;
+    // z_owned_subscriber_t z_cmd_vel_subscriber;
+    // z_owned_subscriber_t z_cmd_pose_subscriber;
+
+
+
+    // Zenoh publishers
+    // z_owned_publisher_t z_joint_states_publisher;
+    z_owned_publisher_t z_joint_commands_publisher;
+    // z_owned_publisher_t z_foot_contacts_publisher;
+
 
     ros::Subscriber cmd_vel_subscriber_;
     ros::Subscriber cmd_pose_subscriber_;
-
-    // Zenoh publishers
-    z_owned_publisher_t z_joint_states_publisher;
-    z_owned_publisher_t z_joint_commands_publisher;
-    z_owned_publisher_t z_foot_contacts_publisher;
 
     ros::Publisher joint_states_publisher_;
     ros::Publisher joint_commands_publisher_;

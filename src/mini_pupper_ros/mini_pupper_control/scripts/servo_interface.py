@@ -9,16 +9,29 @@ from MangDang.mini_pupper.HardwareInterface import HardwareInterface
 # for zenoh
 import zenoh
 import json
-# to serialize ros1 messages and send them via zenoh
-import io
 import time
-import argparse
 
+from datetime import datetime
+from queue import Queue
+from threading import Thread
+import argparse
+import signal
+import time
 
 hardware_interface = HardwareInterface()
 
 
+msg_queue = Queue(maxsize=1)
+flag = True
+
+
+def handler(signum, frame):
+    global flag
+    flag = False
+
+
 def callback(msg):
+
     joint_positions = msg.points[0].positions
     lf1_position = joint_positions[0]
     lf2_position = joint_positions[1]
@@ -40,51 +53,60 @@ def callback(msg):
          rb2_position+rb3_position, lb2_position+lb3_position]
     ])
 
-    # print(f"I'm going to set actuator positions to {joint_angles}")
     hardware_interface.set_actuator_postions(joint_angles)
+
+
+def servos_thr():
+    global flag
+    while flag:
+        global msg_queue
+        msg = msg_queue.get(block=True)
+        callback(msg)
+        time.sleep(1/400)
 
 
 def z_listener(sample):
     try:
         msg = JointTrajectory()
         msg.deserialize(sample.payload)
-        callback(msg)
+        msg_queue.put(msg, block=False)
     except:
         pass
 
 
 def listener():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m','--mode', help='Zenoh mode', required=False, type=str, default='client')
+    parser.add_argument('-c','--connect', help='Zenoh connect locator', required=False, type=str, default='tcp/192.168.86.131:7447')
 
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('-m','--mode', help='Zenoh mode', required=False, type=str, default='client')
-    # parser.add_argument('-c','--connect', help='Zenoh connect locator', required=False, type=str, default='tcp/192.168.86.131:7447')
+    args, unknown = parser.parse_known_args()
+    args = vars(args)
 
-    # args = vars(parser.parse_args())
+    z_mode = args['mode']
+    z_connect = args['connect']
 
-    z_mode = 'client'
-    z_connect = 'tcp/192.168.86.131:7447'
+    # init zenoh
 
     z_config = zenoh.Config()
-    # z_config.insert_json5(zenoh.config.MODE_KEY, json.dumps(args['mode']))
-    # z_config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([args['connect']]))
+
     z_config.insert_json5(zenoh.config.MODE_KEY, json.dumps(z_mode))
     z_config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([z_connect]))
     z_session = zenoh.open(z_config)
     # init zenoh
 
-
-
-    # rospy.init_node('servo_interface', anonymous=True)
-    # rospy.Subscriber("/joint_group_position_controller/command",
-    #                  JointTrajectory, callback, queue_size=1)
-
     sub = z_session.declare_subscriber("joint_group_position_controller/command", z_listener)
 
 
-    # rospy.spin()
-    while True:
-        time.sleep(10)
+    servos = Thread(target=servos_thr)
+    servos.start()
+
+    signal.signal(signal.SIGINT, handler)
+
+    servos.join()
+
+    sub.undeclare()
+    z_session.close()
 
 
 if __name__ == '__main__':

@@ -41,21 +41,21 @@ namespace yocs_velocity_smoother {
 
 
 // Zenoh Closures
-void z_robot_vel_cb(const z_sample_t *sample, void *ctx) {
-  VelocitySmoother *vs = (VelocitySmoother*) ctx;
-  geometry_msgs::Twist *msg = new geometry_msgs::Twist();
-  geometry_msgs::Twist::ConstPtr c_msg(msg);
+// void z_robot_vel_cb(const z_sample_t *sample, void *ctx) {
+//   VelocitySmoother *vs = (VelocitySmoother*) ctx;
+//   geometry_msgs::Twist *msg = new geometry_msgs::Twist();
+//   geometry_msgs::Twist::ConstPtr c_msg(msg);
 
-  uint8_t *buffer = (uint8_t*) std::calloc(sample->payload.len, sizeof(uint8_t));
+//   uint8_t *buffer = (uint8_t*) std::calloc(sample->payload.len, sizeof(uint8_t));
 
-  std::memcpy(buffer, sample->payload.start, sample->payload.len);
+//   std::memcpy(buffer, sample->payload.start, sample->payload.len);
 
-  ros::serialization::IStream de_stream(buffer, (uint32_t) sample->payload.len);
-  ros::serialization::deserialize(de_stream, *msg);
+//   ros::serialization::IStream de_stream(buffer, (uint32_t) sample->payload.len);
+//   ros::serialization::deserialize(de_stream, *msg);
 
-  vs->velocityCB(c_msg);
-  ROS_WARN("Received from Zenoh - twist\n");
-}
+//   vs->velocityCB(c_msg);
+//   ROS_WARN("Received from Zenoh - twist\n");
+// }
 
 
 /*********************
@@ -73,20 +73,20 @@ VelocitySmoother::VelocitySmoother(const std::string &name)
 };
 
 
-void VelocitySmoother::zRobotVelCB(const z_sample_t *sample, void *ctx) {
-  (void) ctx;
-  geometry_msgs::Twist *msg = new geometry_msgs::Twist();
-  geometry_msgs::Twist::ConstPtr c_msg(msg);
+// void VelocitySmoother::zRobotVelCB(const z_sample_t *sample, void *ctx) {
+//   (void) ctx;
+//   geometry_msgs::Twist *msg = new geometry_msgs::Twist();
+//   geometry_msgs::Twist::ConstPtr c_msg(msg);
 
-  uint8_t *buffer = (uint8_t*) std::calloc(sample->payload.len, sizeof(uint8_t));
+//   uint8_t *buffer = (uint8_t*) std::calloc(sample->payload.len, sizeof(uint8_t));
 
-  std::memcpy(buffer, sample->payload.start, sample->payload.len);
+//   std::memcpy(buffer, sample->payload.start, sample->payload.len);
 
-  ros::serialization::IStream de_stream(buffer, (uint32_t) sample->payload.len);
-  ros::serialization::deserialize(de_stream, *msg);
+//   ros::serialization::IStream de_stream(buffer, (uint32_t) sample->payload.len);
+//   ros::serialization::deserialize(de_stream, *msg);
 
-  this->robotVelCB(c_msg);
-}
+//   this->robotVelCB(c_msg);
+// }
 
 void VelocitySmoother::reconfigCB(yocs_velocity_smoother::paramsConfig &config, uint32_t level)
 {
@@ -410,57 +410,57 @@ bool VelocitySmoother::init(ros::NodeHandle& nh)
   // Publishers and subscribers
   odometry_sub    = nh.subscribe("odometry",      1, &VelocitySmoother::odometryCB, this);
   current_vel_sub = nh.subscribe("robot_cmd_vel", 1, &VelocitySmoother::robotVelCB, this);
-  // raw_in_vel_sub  = nh.subscribe("raw_cmd_vel",   1, &VelocitySmoother::velocityCB, this);
+  raw_in_vel_sub  = nh.subscribe("raw_cmd_vel",   1, &VelocitySmoother::velocityCB, this);
   smooth_vel_pub  = nh.advertise <geometry_msgs::Twist> ("smooth_cmd_vel", 1);
 
 
   /// Zenoh init
 
-  nh.param<std::string>("mode", this->mode, "client");
-  nh.param<std::string>("locator", this->locator, "tcp/192.168.86.131:7447");
+  // nh.param<std::string>("mode", this->mode, "client");
+  // nh.param<std::string>("locator", this->locator, "tcp/192.168.86.131:7447");
 
-	z_owned_config_t z_config = z_config_default();
+	// z_owned_config_t z_config = z_config_default();
 
-  // Default config for the time being
-  zp_config_insert(z_config_loan(&z_config), Z_CONFIG_MODE_KEY, z_string_make(this->mode.c_str()));
-  zp_config_insert(z_config_loan(&z_config), Z_CONFIG_PEER_KEY, z_string_make(this->locator.c_str()));
+  // // Default config for the time being
+  // zp_config_insert(z_config_loan(&z_config), Z_CONFIG_MODE_KEY, z_string_make(this->mode.c_str()));
+  // zp_config_insert(z_config_loan(&z_config), Z_CONFIG_PEER_KEY, z_string_make(this->locator.c_str()));
 
-  ROS_INFO("Opening session...\n");
-  this->z_session = z_open(z_config_move(&z_config));
-  if (!z_session_check(&this->z_session)) {
-      ROS_ERROR("Unable to open session!\n");
-        return false;
-    }
+  // ROS_INFO("Opening session...\n");
+  // this->z_session = z_open(z_config_move(&z_config));
+  // if (!z_session_check(&this->z_session)) {
+  //     ROS_ERROR("Unable to open session!\n");
+  //       return false;
+  //   }
 
-    // Start read and lease tasks for zenoh-pico
-    if (zp_start_read_task(z_session_loan(&this->z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&this->z_session), NULL) < 0) {
-        ROS_ERROR("Unable to start read and lease tasks");
-        return false;
-    }
-	///
+  //   // Start read and lease tasks for zenoh-pico
+  //   if (zp_start_read_task(z_session_loan(&this->z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&this->z_session), NULL) < 0) {
+  //       ROS_ERROR("Unable to start read and lease tasks");
+  //       return false;
+  //   }
+	// ///
 
-  // Zenoh Publisher and subscribers
+  // // Zenoh Publisher and subscribers
 
-  // cmd_vel/smooth publisher
+  // // cmd_vel/smooth publisher
 
-    this->z_smooth_vel_pub = z_declare_publisher(z_session_loan(&this->z_session), z_keyexpr("cmd_vel/smooth"), NULL);
-  if (!z_publisher_check(&this->z_smooth_vel_pub)) {
-        ROS_ERROR("Unable to declare publisher for \"cmd_vel/smooth\"!\n");
-        return false;
-  }
+  //   this->z_smooth_vel_pub = z_declare_publisher(z_session_loan(&this->z_session), z_keyexpr("cmd_vel/smooth"), NULL);
+  // if (!z_publisher_check(&this->z_smooth_vel_pub)) {
+  //       ROS_ERROR("Unable to declare publisher for \"cmd_vel/smooth\"!\n");
+  //       return false;
+  // }
 
-  // cmd_vel subscriber
+  // // cmd_vel subscriber
 
-  // auto cb = std::bind(&VelocitySmoother::zRobotVelCB, this, std::placeholders::_1, std::placeholders::_2);
-  // z_owned_closure_sample_t callback =  z_closure_sample(reinterpret_cast<_z_data_handler_t>(cb), NULL, NULL); //z_closure_sample(z_robot_vel_cb, NULL,(void*) this );
-  z_owned_closure_sample_t callback =  z_closure_sample(z_robot_vel_cb, NULL,(void*) this );
-  ROS_INFO("Declaring Subscriber on '%s'...\n", "robot_cmd_vel");
-  this->z_current_vel_sub =
-      z_declare_subscriber(z_session_loan(&this->z_session), z_keyexpr("cmd_vel"), z_closure_sample_move(&callback), NULL);
-  if (!z_subscriber_check(&this->z_current_vel_sub)) {
-      ROS_ERROR("Unable to declare subscriber.\n");
-      return false;
-  }
+  // // auto cb = std::bind(&VelocitySmoother::zRobotVelCB, this, std::placeholders::_1, std::placeholders::_2);
+  // // z_owned_closure_sample_t callback =  z_closure_sample(reinterpret_cast<_z_data_handler_t>(cb), NULL, NULL); //z_closure_sample(z_robot_vel_cb, NULL,(void*) this );
+  // z_owned_closure_sample_t callback =  z_closure_sample(z_robot_vel_cb, NULL,(void*) this );
+  // ROS_INFO("Declaring Subscriber on '%s'...\n", "robot_cmd_vel");
+  // this->z_current_vel_sub =
+  //     z_declare_subscriber(z_session_loan(&this->z_session), z_keyexpr("cmd_vel"), z_closure_sample_move(&callback), NULL);
+  // if (!z_subscriber_check(&this->z_current_vel_sub)) {
+  //     ROS_ERROR("Unable to declare subscriber.\n");
+  //     return false;
+  // }
 
 
   return true;

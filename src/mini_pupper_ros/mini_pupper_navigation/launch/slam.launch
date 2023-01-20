@@ -3,13 +3,27 @@
     <arg name="robot_name" default="/"/>
     <arg name="rviz"       default="true"/>
     <arg name="use_odom"   default="false"/>
+    <arg name="topic_name" default="scan"/>
+    <arg name="mode" default="client"/>
+    <arg name="locator" default="tcp/192.168.86.134:7447"/>
 
     <env name="CARTOGRAPHER_USE_ODOM" value="$(arg use_odom)" />
 
     <arg if="$(eval arg('robot_name') == '/')"  name="frame_prefix" value="" />
     <arg unless="$(eval arg('robot_name') == '/')" name="frame_prefix" value="$(arg robot_name)/" />
 
+
+
+
     <group ns="$(arg robot_name)">
+
+
+        <include file="$(find mini_pupper_navigation)/launch/include/scan_relay.launch">
+            <arg name="topic_name"   value="$(arg topic_name)"/>
+            <arg name="mode" value="$(arg mode)"/>
+            <arg name="locator" value="$(arg locator)"/>
+        </include>
+
         <node name="cartographer_node" pkg="cartographer_ros"
             type="cartographer_node" args="
                 -configuration_directory $(find mini_pupper_navigation)/config/cartographer

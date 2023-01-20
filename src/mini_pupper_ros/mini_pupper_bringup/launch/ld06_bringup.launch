@@ -27,6 +27,6 @@
     <param name="angle_crop_max" type="double" value="225.0" />
   </node>
 
-  <node pkg="tf" type="static_transform_publisher" name="base_link_to_ld06"
-    args="0 0 0 1.57 0 0 /lidar /lidar_frame 100" if="$(arg fix_to_lidar_link)" />
+  <!-- <node pkg="tf" type="static_transform_publisher" name="base_link_to_ld06"
+    args="0 0 0 1.57 0 0 /lidar /lidar_frame 100" if="$(arg fix_to_lidar_link)" /> -->
 </launch>

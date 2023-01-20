@@ -28,20 +28,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <quadruped_controller.h>
 
 
-void z_cmd_vel_cb(const z_sample_t *sample, void *ctx) {
-    QuadrupedController *qc = (QuadrupedController*) ctx;
-    geometry_msgs::Twist *msg = new geometry_msgs::Twist();
-    geometry_msgs::Twist::ConstPtr c_msg(msg);
+// void z_cmd_vel_cb(const z_sample_t *sample, void *ctx) {
+//     QuadrupedController *qc = (QuadrupedController*) ctx;
+//     geometry_msgs::Twist *msg = new geometry_msgs::Twist();
+//     geometry_msgs::Twist::ConstPtr c_msg(msg);
 
-    uint8_t *buffer = (uint8_t*) std::calloc(sample->payload.len, sizeof(uint8_t));
+//     uint8_t *buffer = (uint8_t*) std::calloc(sample->payload.len, sizeof(uint8_t));
 
-    std::memcpy(buffer, sample->payload.start, sample->payload.len);
+//     std::memcpy(buffer, sample->payload.start, sample->payload.len);
 
-    ros::serialization::IStream de_stream(buffer, (uint32_t) sample->payload.len);
-    ros::serialization::deserialize(de_stream, *msg);
+//     ros::serialization::IStream de_stream(buffer, (uint32_t) sample->payload.len);
+//     ros::serialization::deserialize(de_stream, *msg);
 
-    qc->cmdVelCallback_(c_msg);
-}
+//     qc->cmdVelCallback_(c_msg);
+// }
 
 champ::PhaseGenerator::Time rosTimeToChampTime(const ros::Time& time)
 {
@@ -96,7 +96,7 @@ QuadrupedController::QuadrupedController(ros::NodeHandle *nh, ros::NodeHandle *p
     // Zenoh Init
 
     nh->param<std::string>("mode", this->mode, "client");
-    nh->param<std::string>("locator", this->locator, "tcp/192.168.86.131:7447");
+    nh->param<std::string>("locator", this->locator, "tcp/192.168.86.134:7447");
 
     z_owned_config_t z_config = z_config_default();
 
@@ -131,15 +131,15 @@ QuadrupedController::QuadrupedController(ros::NodeHandle *nh, ros::NodeHandle *p
 
     // auto cb = std::bind(&VelocitySmoother::zRobotVelCB, this, std::placeholders::_1, std::placeholders::_2);
     // z_owned_closure_sample_t callback =  z_closure_sample(reinterpret_cast<_z_data_handler_t>(cb), NULL, NULL);
-    z_owned_closure_sample_t callback =  z_closure_sample(z_cmd_vel_cb, NULL,(void*) this );
-    this->z_cmd_vel_subscriber =
-        z_declare_subscriber(z_session_loan(&this->z_session), z_keyexpr("cmd_vel/smooth"), z_closure_sample_move(&callback), NULL);
-    if (!z_subscriber_check(&this->z_cmd_vel_subscriber)) {
-        ROS_ERROR("Unable to declare subscriber on cmd_vel/smooth.\n");
-        exit(-1);
-    }
-    ///
-    //
+    // z_owned_closure_sample_t callback =  z_closure_sample(z_cmd_vel_cb, NULL,(void*) this );
+    // this->z_cmd_vel_subscriber =
+    //     z_declare_subscriber(z_session_loan(&this->z_session), z_keyexpr("cmd_vel/smooth"), z_closure_sample_move(&callback), NULL);
+    // if (!z_subscriber_check(&this->z_cmd_vel_subscriber)) {
+    //     ROS_ERROR("Unable to declare subscriber on cmd_vel/smooth.\n");
+    //     exit(-1);
+    // }
+    // ///
+    // //
 
 
     gait_config_.knee_orientation = knee_orientation.c_str();

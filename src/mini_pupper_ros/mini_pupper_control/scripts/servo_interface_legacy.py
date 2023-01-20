@@ -9,9 +9,24 @@ try:
     nvram_pickle = True
 except ImportError:
     nvram_pickle = False
+import zenoh
+import json
+from queue import Queue
+from threading import Thread
+import argparse
+import signal
+import time
 
+
+flag = True
 servo_pins = [15, 14, 13,  12, 11, 10,  9, 8, 7,  6, 5, 4]  # rf lf rb lb
 servo_offset = []
+msg_queue = Queue(maxsize=1)
+
+
+def handler(signum, frame):
+    global flag
+    flag = False
 
 
 def set_servo_angle(pin, angle):
@@ -92,12 +107,56 @@ def callback(data):
     set_servo_angle(4, servo_offset[11]+90+lb2_position+lb3_position)
 
 
+def servos_thr():
+    global flag
+    while flag:
+        global msg_queue
+        msg = msg_queue.get(block=True)
+        callback(msg)
+        time.sleep(1/400)
+
+
+def z_listener(sample):
+    try:
+        msg = JointTrajectory()
+        msg.deserialize(sample.payload)
+        msg_queue.put(msg, block=False)
+    except:
+        pass
+
+
 def listener():
-    rospy.init_node('servo_interface', anonymous=True)
-    get_param()
-    rospy.Subscriber("/joint_group_position_controller/command",
-                     JointTrajectory, callback, queue_size=1)
-    rospy.spin()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m','--mode', help='Zenoh mode', required=False, type=str, default='client')
+    parser.add_argument('-c','--connect', help='Zenoh connect locator', required=False, type=str, default='tcp/192.168.86.131:7447')
+
+    args, unknown = parser.parse_known_args()
+    args = vars(args)
+
+    z_mode = args['mode']
+    z_connect = args['connect']
+
+    # init zenoh
+
+    z_config = zenoh.Config()
+
+    z_config.insert_json5(zenoh.config.MODE_KEY, json.dumps(z_mode))
+    z_config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([z_connect]))
+    z_session = zenoh.open(z_config)
+    # init zenoh
+
+    sub = z_session.declare_subscriber("joint_group_position_controller/command", z_listener)
+
+
+    servos = Thread(target=servos_thr)
+    servos.start()
+
+    signal.signal(signal.SIGINT, handler)
+
+    servos.join()
+
+    sub.undeclare()
+    z_session.close()
 
 
 if __name__ == '__main__':

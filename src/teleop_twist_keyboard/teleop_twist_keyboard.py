@@ -19,11 +19,11 @@ else:
     import termios
     import tty
 
-# for zenoh
-import zenoh
-import json
-# to serialize ros1 messages and send them via zenoh
-import io
+# # for zenoh
+# import zenoh
+# import json
+# # to serialize ros1 messages and send them via zenoh
+# import io
 
 
 TwistMsg = Twist
@@ -89,7 +89,7 @@ class PublishThread(threading.Thread):
         super(PublishThread, self).__init__()
         self.publisher = rospy.Publisher('cmd_vel', TwistMsg, queue_size = 1)
 
-        self.z_publisher = session.declare_publisher("cmd_vel")
+        # self.z_publisher = session.declare_publisher("cmd_vel")
 
         self.x = 0.0
         self.y = 0.0
@@ -167,13 +167,13 @@ class PublishThread(threading.Thread):
             self.condition.release()
 
             # Publish.
-            # self.publisher.publish(twist_msg)
+            self.publisher.publish(twist_msg)
 
             # Serialize and publish on zenoh
-            buff = io.BytesIO()
-            twist_msg.serialize(buff)
-            value = buff.getvalue()
-            self.z_publisher.put(value)
+            # buff = io.BytesIO()
+            # twist_msg.serialize(buff)
+            # value = buff.getvalue()
+            # self.z_publisher.put(value)
 
         # Publish stop message when thread exits.
         twist.linear.x = 0
@@ -183,13 +183,13 @@ class PublishThread(threading.Thread):
         twist.angular.y = 0
         twist.angular.z = 0
 
-        # self.publisher.publish(twist_msg)
+        self.publisher.publish(twist_msg)
 
         # Serialize and publish on zenoh
-        buff = io.BytesIO()
-        twist_msg.serialize(buff)
-        value = buff.getvalue()
-        self.z_publisher.put(value)
+        # buff = io.BytesIO()
+        # twist_msg.serialize(buff)
+        # value = buff.getvalue()
+        # self.z_publisher.put(value)
 
 def getKey(settings, timeout):
     if sys.platform == 'win32':
@@ -234,20 +234,21 @@ if __name__=="__main__":
     twist_frame = rospy.get_param("~frame_id", '')
 
 
-    z_mode = rospy.get_param("~zenoh_mode", "client")
-    z_locator = rospy.get_param("~zenoh_locator","tcp/192.168.86.131:7447")
+    # z_mode = rospy.get_param("~zenoh_mode", "client")
+    # z_locator = rospy.get_param("~zenoh_locator","tcp/192.168.86.131:7447")
 
 
-    z_config = zenoh.Config()
-    z_config.insert_json5(zenoh.config.MODE_KEY, json.dumps(z_mode))
-    z_config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([z_locator]))
-    z_session = zenoh.open(z_config)
+    # z_config = zenoh.Config()
+    # z_config.insert_json5(zenoh.config.MODE_KEY, json.dumps(z_mode))
+    # z_config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([z_locator]))
+    # z_session = zenoh.open(z_config)
 
 
     if stamped:
         TwistMsg = TwistStamped
 
-    pub_thread = PublishThread(repeat, z_session)
+    # pub_thread = PublishThread(repeat, z_session)
+    pub_thread = PublishThread(repeat, None)
 
     x = 0
     y = 0

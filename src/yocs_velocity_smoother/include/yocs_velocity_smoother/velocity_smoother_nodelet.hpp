@@ -40,7 +40,7 @@ namespace yocs_velocity_smoother {
 
 
 // Zenoh Callbacks
-void z_robot_vel_cb(const z_sample_t *sample, void *ctx);
+// void z_robot_vel_cb(const z_sample_t *sample, void *ctx);
 
 
 class VelocitySmoother
@@ -92,19 +92,19 @@ private:
 
   // Zenoh configuration and session
 
-  std::string mode;
-  std::string locator;
+  // std::string mode;
+  // std::string locator;
 
-  z_owned_session_t z_session;
+  // z_owned_session_t z_session;
 
-  // Zenoh subscribers
-  z_owned_subscriber_t z_odometry_sub;
-  z_owned_subscriber_t z_current_vel_sub;
-  z_owned_subscriber_t z_raw_in_vel_sub;
+  // // Zenoh subscribers
+  // z_owned_subscriber_t z_odometry_sub;
+  // z_owned_subscriber_t z_current_vel_sub;
+  // z_owned_subscriber_t z_raw_in_vel_sub;
 
 
   // Zenoh publishers
-  z_owned_publisher_t z_smooth_vel_pub;
+  // z_owned_publisher_t z_smooth_vel_pub;
 
   //
 
@@ -115,7 +115,7 @@ private:
 
 
 
-  void zRobotVelCB(const z_sample_t *sample, void *ctx);
+  // void zRobotVelCB(const z_sample_t *sample, void *ctx);
 
   double sign(double x)  { return x < 0.0 ? -1.0 : +1.0; };
 
