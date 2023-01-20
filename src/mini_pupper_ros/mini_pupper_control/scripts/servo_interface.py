@@ -59,10 +59,14 @@ def callback(msg):
 def servos_thr():
     global flag
     while flag:
-        global msg_queue
-        msg = msg_queue.get(block=True)
-        callback(msg)
-        time.sleep(1/400)
+        try:
+            global msg_queue
+            msg = msg_queue.get(block=False, timeout=1/1000)
+            callback(msg)
+            time.sleep(1/400)
+        except:
+            pass
+    print('Received Ctrl-C bye!')
 
 
 def z_listener(sample):

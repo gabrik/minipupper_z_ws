@@ -25,6 +25,7 @@ msg_queue = Queue(maxsize=1)
 
 
 def handler(signum, frame):
+    print('Received Ctrl-C signaling closing')
     global flag
     flag = False
 
@@ -110,10 +111,14 @@ def callback(data):
 def servos_thr():
     global flag
     while flag:
-        global msg_queue
-        msg = msg_queue.get(block=True)
-        callback(msg)
-        time.sleep(1/400)
+        try:
+            global msg_queue
+            msg = msg_queue.get(block=False, timeout=1/1000)
+            callback(msg)
+            time.sleep(1/400)
+        except:
+            pass
+    print('Received Ctrl-C bye!')
 
 
 def z_listener(sample):
@@ -145,7 +150,7 @@ def listener():
     z_session = zenoh.open(z_config)
     # init zenoh
 
-    sub = z_session.declare_subscriber("joint_group_position_controller/command", z_listener)
+    sub = z_session.declare_subscriber("r", z_listener)
 
 
     servos = Thread(target=servos_thr)
