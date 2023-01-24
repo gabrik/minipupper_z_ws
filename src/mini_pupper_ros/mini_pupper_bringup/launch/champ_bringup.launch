@@ -21,7 +21,7 @@
     <arg name="publish_foot_contacts"  default="true" />
     <arg name="close_loop_odom"        default="false" />
     <arg name="mode" default="client"/>
-    <arg name="locator" default="tcp/192.168.86.134:7447"/>
+    <arg name="locator" default="tcp/192.168.86.131:7447"/>
 
     <group ns="$(arg robot_name)">
         <param name="tf_prefix" value="$(arg robot_name)"/>

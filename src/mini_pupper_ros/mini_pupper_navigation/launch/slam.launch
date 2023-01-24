@@ -5,7 +5,7 @@
     <arg name="use_odom"   default="false"/>
     <arg name="topic_name" default="scan"/>
     <arg name="mode" default="client"/>
-    <arg name="locator" default="tcp/192.168.86.134:7447"/>
+    <arg name="locator" default="tcp/192.168.86.131:7447"/>
 
     <env name="CARTOGRAPHER_USE_ODOM" value="$(arg use_odom)" />
 

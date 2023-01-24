@@ -38,6 +38,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(argparse)
 
+# include(FetchContent)
+# FetchContent_Declare(
+#     zenoh
+#     GIT_REPOSITORY https://github.com/eclipse-zenoh/zenoh-c
+#     GIT_TAG 0.7.0-rc
+# )
+# FetchContent_MakeAvailable(zenoh)
+
 ###########
 ## Build ##
 ###########
@@ -66,12 +74,18 @@ file(GLOB  MAIN_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 
 # Zenoh Pico
+set(BUILD_EXAMPLES OFF CACHE BOOL "Disables examples" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "Disables tests" FORCE)
+set(BUILD_MULTICAST OFF CACHE BOOL "Disables multicast tests" FORCE)
+set(BUILT_INTEGRATION OFF CACHE BOOL "Disables integration tests " FORCE)
+set(BUILD_TOOLS OFF CACHE BOOL "Disables build tools" FORCE)
+
 include_directories(${CMAKE_SOURCE_DIR}/zenoh-pico/include)
 set(Z_BUILD_FLAGS "-DZENOH_LINUX=1 -DZENOH_C_STANDARD=99 -DZ_LINK_TCP=1 -DZ_LINK_UDP_MULTICAST=1 -DZ_LINK_UDP_UNICAST=1 -DZ_SCOUTING_UDP=1 -DZ_MULTI_THREAD=1")
 set(EXTRA_LIBS zenohpico -pthread argparse)
 
 ##
-
+# set(EXTRA_LIBS zenoh -pthread argparse)
 
 add_executable(${PROJECT_NAME}_node
   ${MAIN_SRC}

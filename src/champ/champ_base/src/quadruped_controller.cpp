@@ -96,7 +96,7 @@ QuadrupedController::QuadrupedController(ros::NodeHandle *nh, ros::NodeHandle *p
     // Zenoh Init
 
     nh->param<std::string>("mode", this->mode, "client");
-    nh->param<std::string>("locator", this->locator, "tcp/192.168.86.134:7447");
+    nh->param<std::string>("locator", this->locator, "tcp/192.168.86.131:7447");
 
     ROS_INFO("Zenoh Mode is : %s", this->mode.c_str());
     ROS_INFO("Zenoh locator is: %s", this->locator.c_str());
@@ -250,18 +250,18 @@ void QuadrupedController::publishJoints_(float target_joints[12])
             joints_msg.position[i]= target_joints[i];
         }
 
-        // joint_states_publisher_.publish(joints_msg);
+        joint_states_publisher_.publish(joints_msg);
 
         // Here we serialize and publish over zenoh
-        uint32_t ser_size = ros::serialization::serializationLength(joints_msg);
-        uint8_t *buffer = (uint8_t*) std::calloc((size_t)ser_size, sizeof(uint8_t));
-        ros::serialization::OStream ostream(buffer, ser_size);
-        ros::serialization::serialize(ostream, joints_msg);
+        // uint32_t ser_size = ros::serialization::serializationLength(joints_msg);
+        // uint8_t *buffer = (uint8_t*) std::calloc((size_t)ser_size, sizeof(uint8_t));
+        // ros::serialization::OStream ostream(buffer, ser_size);
+        // ros::serialization::serialize(ostream, joints_msg);
 
-        z_publisher_put_options_t options = z_publisher_put_options_default();
-        options.encoding = z_encoding(Z_ENCODING_PREFIX_APP_OCTET_STREAM, NULL);
+        // z_publisher_put_options_t options = z_publisher_put_options_default();
+        // options.encoding = z_encoding(Z_ENCODING_PREFIX_APP_OCTET_STREAM, NULL);
 
-        z_publisher_put(z_publisher_loan(&this->z_joint_commands_publisher), (const uint8_t*) buffer, (size_t) ser_size, &options);
+        // z_publisher_put(z_publisher_loan(&this->z_joint_commands_publisher), (const uint8_t*) buffer, (size_t) ser_size, &options);
         // ROS_WARN("Sent on Zenoh - joint commands\n");
         //
     }

@@ -3,7 +3,7 @@
   <arg name="legacy" default="false" />
 
   <arg name="mode" default="client"/>
-  <arg name="locator" default="tcp/192.168.86.134:7447"/>
+  <arg name="locator" default="tcp/192.168.86.131:7447"/>
 
   <node name="servo_interface" pkg="mini_pupper_control" type="servo_interface.py" output="screen" unless="$(arg legacy)"
   args="-m $(arg mode) -c $(arg locator)" />

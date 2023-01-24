@@ -77,6 +77,9 @@ def get_param():
 
 
 def callback(data):
+    # print(f'Callback({data})')
+
+
     joint_positions = data.points[0].positions
     lf1_position = math.degrees(joint_positions[0])
     lf2_position = math.degrees(joint_positions[1])
@@ -107,8 +110,27 @@ def callback(data):
     set_servo_angle(5, servo_offset[10]+lb2_position)
     set_servo_angle(4, servo_offset[11]+90+lb2_position+lb3_position)
 
+    end_time = rospy.get_rostime()
+
+    print(f'[Legacy] Actuation took {end_time.secs - data.header.stamp.secs}s and {end_time.nsecs - data.header.stamp.nsecs}')
+
+def servos_thr(sub):
+    print("Servo thread is started!")
+    msg = JointTrajectory()
+    global flag
+    while flag:
+        try:
+            for sample in sub.receiver:
+
+                msg.deserialize(sample.payload)
+                callback(msg)
+        except Exception as e:
+            print(f'{e}')
+            pass
+    print('Received Ctrl-C bye!')
 
 # def servos_thr():
+#     print("Servo thread is started!")
 #     global flag
 #     while flag:
 #         try:
@@ -120,30 +142,20 @@ def callback(data):
 #             pass
 #     print('Received Ctrl-C bye!')
 
-
-def servos_thr(sub):
-    msg = JointTrajectory()
-    global flag
-    while flag:
-        try:
-            for sample in sub.receiver.get(timeout=1/1000):
-                msg.deserialize(sample.payload)
-                callback(msg)
-        except:
-            pass
-    print('Received Ctrl-C bye!')
-
-
-def z_listener(sample):
-    try:
-        msg = JointTrajectory()
-        msg.deserialize(sample.payload)
-        msg_queue.put(msg, block=False)
-    except:
-        pass
-
+# def z_listener(sample):
+#     try:
+#         msg = JointTrajectory()
+#         msg.deserialize(sample.payload)
+#         msg_queue.put(msg, block=False)
+#     except:
+#         pass
 
 def listener():
+
+
+    rospy.impl.simtime.init_simtime()
+    rospy.rostime.set_rostime_initialized(True)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-m','--mode', help='Zenoh mode', required=False, type=str, default='client')
     parser.add_argument('-c','--connect', help='Zenoh connect locator', required=False, type=str, default='tcp/192.168.86.131:7447')
@@ -162,16 +174,19 @@ def listener():
     z_config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([z_connect]))
     z_session = zenoh.open(z_config)
 
-    # sub = z_session.declare_subscriber("r", z_listener)
-    sub = z_session.declare_subscriber("r", zenoh.Queue())
+    sub = z_session.declare_subscriber("joint_group_position_controller/command", zenoh.Queue())
 
-
+    # sub = z_session.declare_subscriber("joint_group_position_controller/command", z_listener)
     servos = Thread(target=servos_thr, args=(sub, ))
+    # servos = Thread(target=servos_thr)
     servos.start()
 
     signal.signal(signal.SIGINT, handler)
 
-    servos.join()
+    # servos.join()
+    global flag
+    while flag:
+        time.sleep(1)
 
     sub.undeclare()
     z_session.close()

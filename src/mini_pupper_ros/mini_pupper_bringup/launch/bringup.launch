@@ -18,6 +18,7 @@
     <arg name="joint_controller_topic" default="joint_group_position_controller/command" /> <!-- Change to remap command topic for actuator controller (ROS control).  -->
     <arg name="hardware_connected"     default="true" /> <!-- Flag useful to launch hardware connected launch files. This auto disables publishing joint_states. -->
     <arg name="lidar_connected"        default="true" /> <!-- Flag useful to launch lidar launch file. -->
+    <arg name="legacy"                 default="false" /> <!-- if legacy servos -->
 
     <arg if="$(eval arg('robot_name') == '/')"  name="frame_prefix" value="" />
     <arg unless="$(eval arg('robot_name') == '/')" name="frame_prefix" value="$(arg robot_name)/" />
@@ -44,7 +45,9 @@
 
     <group if="$(arg hardware_connected)">
         <!-- <rosparam file="$(find mini_pupper_control)/config/calibration.yaml" command="load"/> -->
-        <include file="$(find mini_pupper_control)/launch/servo_interface.launch"/>
+        <include file="$(find mini_pupper_control)/launch/servo_interface.launch">
+             <arg name="legacy"             value="$(arg legacy)"/>
+        </include>
         <!--include file="$(find mini_pupper_teleop)/launch/ps4_interface.launch"/-->
         <include file="$(find mini_pupper_bringup)/launch/ld06_bringup.launch" if="$(arg lidar_connected)"/>
     </group>
