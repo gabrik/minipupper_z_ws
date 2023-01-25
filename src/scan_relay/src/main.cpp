@@ -1,11 +1,6 @@
 #include "ros_api.h"
 
-
-extern "C" {
-  #include "zenoh-pico.h"
-}
-
-
+#include <zenoh.h>
 
 void z_scan_cb(const z_sample_t *sample, void *ctx) {
     sensor_msgs::LaserScan* msg = (sensor_msgs::LaserScan*) ctx;
@@ -40,36 +35,38 @@ int main(int argc, char **argv) {
   z_owned_subscriber_t z_scan_subscriber;
 
 
-   nh_private.param<std::string>("topic_name", topic_name, "scan");
+  nh_private.param<std::string>("topic_name", topic_name, "scan");
   nh_private.param<std::string>("mode", mode, "client");
   nh_private.param<std::string>("locator", locator, "tcp/192.168.86.131:7447");
 
   z_owned_config_t z_config = z_config_default();
 
   // Default config for the time being
-  zp_config_insert(z_config_loan(&z_config), Z_CONFIG_MODE_KEY, z_string_make(mode.c_str()));
-  zp_config_insert(z_config_loan(&z_config), Z_CONFIG_PEER_KEY, z_string_make(locator.c_str()));
+  zc_config_insert_json(z_loan(z_config), Z_CONFIG_MODE_KEY, mode.c_str());
+  if (!locator.empty()) {
+        zc_config_insert_json(z_loan(z_config), Z_CONFIG_CONNECT_KEY, locator.c_str());
+  }
 
 
-  z_session = z_open(z_config_move(&z_config));
-  if (!z_session_check(&z_session)) {
+  z_session = z_open(z_move(z_config));
+  if (!z_check(z_session)) {
     ROS_ERROR("Unable to open session!\n");
       exit(EXIT_FAILURE);
   }
 
   // Start read and lease tasks for zenoh-pico
-  if (zp_start_read_task(z_session_loan(&z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&z_session), NULL) < 0) {
-      ROS_ERROR("Unable to start read and lease tasks");
-      exit(EXIT_FAILURE);
-  }
+  // if (zp_start_read_task(z_session_loan(&z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&z_session), NULL) < 0) {
+  //     ROS_ERROR("Unable to start read and lease tasks");
+  //     exit(EXIT_FAILURE);
+  // }
 
 
   // cmd_vel subscriber
 
-  z_owned_closure_sample_t callback =  z_closure_sample(z_scan_cb, NULL, (void*) &output );
+  z_owned_closure_sample_t callback =  z_closure(z_scan_cb, NULL, (void*) &output );
   z_scan_subscriber =
-      z_declare_subscriber(z_session_loan(&z_session), z_keyexpr(topic_name.c_str()), z_closure_sample_move(&callback), NULL);
-  if (!z_subscriber_check(&z_scan_subscriber)) {
+      z_declare_subscriber(z_loan(z_session), z_keyexpr(topic_name.c_str()), z_move(callback), NULL);
+  if (!z_check(z_scan_subscriber)) {
       ROS_ERROR("Unable to declare subscriber on %s.\n",topic_name.c_str());
       exit(-1);
   }

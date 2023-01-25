@@ -21,9 +21,9 @@
 #include <nav_msgs/Odometry.h>
 #include <mutex>
 
-extern "C" {
-  #include "zenoh-pico.h"
-}
+// extern "C" {
+//   #include "zenoh-pico.h"
+// }
 
 /*****************************************************************************
 ** Namespaces
@@ -34,13 +34,6 @@ namespace yocs_velocity_smoother {
 /*****************************************************************************
 ** VelocitySmoother
 *****************************************************************************/
-
-
-
-
-
-// Zenoh Callbacks
-// void z_robot_vel_cb(const z_sample_t *sample, void *ctx);
 
 
 class VelocitySmoother
@@ -89,24 +82,6 @@ private:
   ros::Time            last_cb_time;
   std::vector<double> period_record; /**< Historic of latest periods between velocity commands */
   unsigned int             pr_next; /**< Next position to fill in the periods record buffer */
-
-  // Zenoh configuration and session
-
-  // std::string mode;
-  // std::string locator;
-
-  // z_owned_session_t z_session;
-
-  // // Zenoh subscribers
-  // z_owned_subscriber_t z_odometry_sub;
-  // z_owned_subscriber_t z_current_vel_sub;
-  // z_owned_subscriber_t z_raw_in_vel_sub;
-
-
-  // Zenoh publishers
-  // z_owned_publisher_t z_smooth_vel_pub;
-
-  //
 
   ros::Subscriber odometry_sub;    /**< Current velocity from odometry */
   ros::Subscriber current_vel_sub; /**< Current velocity from commands sent to the robot, not necessarily by this node */

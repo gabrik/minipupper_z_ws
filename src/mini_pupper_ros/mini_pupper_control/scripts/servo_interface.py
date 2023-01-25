@@ -89,21 +89,22 @@ def listener():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-m','--mode', help='Zenoh mode', required=False, type=str, default='client')
-    parser.add_argument('-c','--connect', help='Zenoh connect locator', required=False, type=str, default='tcp/192.168.86.131:7447')
+    parser.add_argument('-c','--connect', help='Zenoh connect locator', required=False, type=str)
 
 
     args, unknown = parser.parse_known_args()
     args = vars(args)
 
-    z_mode = args['mode']
-    z_connect = args['connect']
+    z_mode = args.get('mode')
+    z_connect = args.get('connect', None)
 
     # init zenoh
 
     z_config = zenoh.Config()
 
     z_config.insert_json5(zenoh.config.MODE_KEY, json.dumps(z_mode))
-    z_config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([z_connect]))
+    if z_connect is not None:
+        z_config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([z_connect]))
     z_session = zenoh.open(z_config)
     # init zenoh
 

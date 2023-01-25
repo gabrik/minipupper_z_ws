@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(champ_base)
 
 add_compile_options(-std=c++11)
+set(CMAKE_C_STANDARD 11)
 
 find_package(catkin
     REQUIRED
@@ -74,48 +75,58 @@ install(DIRECTORY config
 
 # Zenoh Pico
 
-set(BUILD_EXAMPLES OFF CACHE BOOL "Disables examples" FORCE)
-set(BUILD_TESTING OFF CACHE BOOL "Disables tests" FORCE)
-set(BUILD_MULTICAST OFF CACHE BOOL "Disables multicast tests" FORCE)
-set(BUILT_INTEGRATION OFF CACHE BOOL "Disables integration tests " FORCE)
-set(BUILD_TOOLS OFF CACHE BOOL "Disables build tools" FORCE)
+# set(BUILD_EXAMPLES OFF CACHE BOOL "Disables examples" FORCE)
+# set(BUILD_TESTING OFF CACHE BOOL "Disables tests" FORCE)
+# set(BUILD_MULTICAST OFF CACHE BOOL "Disables multicast tests" FORCE)
+# set(BUILT_INTEGRATION OFF CACHE BOOL "Disables integration tests " FORCE)
+# set(BUILD_TOOLS OFF CACHE BOOL "Disables build tools" FORCE)
 
-set(CMAKE_C_STANDARD 99)
-add_subdirectory(${CMAKE_SOURCE_DIR}/zenoh-pico ${CMAKE_SOURCE_DIR}/zenoh-pico)
-include_directories(${CMAKE_SOURCE_DIR}/zenoh-pico/include)
-target_compile_definitions(zenohpico PRIVATE ZENOH_LINUX=1 ZENOH_C_STANDARD=99 Z_LINK_TCP=1 Z_LINK_UDP_MULTICAST=1 Z_LINK_UDP_UNICAST=1 Z_SCOUTING_UDP=1 Z_MULTI_THREAD=1)
-target_compile_options(zenohpico PRIVATE -fPIC -pthread)
+# set(CMAKE_C_STANDARD 99)
+# add_subdirectory(${CMAKE_SOURCE_DIR}/zenoh-pico ${CMAKE_SOURCE_DIR}/zenoh-pico)
+# include_directories(${CMAKE_SOURCE_DIR}/zenoh-pico/include)
+# target_compile_definitions(zenohpico PRIVATE ZENOH_LINUX=1 ZENOH_C_STANDARD=99 Z_LINK_TCP=1 Z_LINK_UDP_MULTICAST=1 Z_LINK_UDP_UNICAST=1 Z_SCOUTING_UDP=1 Z_MULTI_THREAD=1)
+# target_compile_options(zenohpico PRIVATE -fPIC -pthread)
 
-set(Z_BUILD_FLAGS "-DZENOH_LINUX=1 -DZENOH_C_STANDARD=99 -DZ_LINK_TCP=1 -DZ_LINK_UDP_MULTICAST=1 -DZ_LINK_UDP_UNICAST=1 -DZ_SCOUTING_UDP=1 -DZ_MULTI_THREAD=1")
+# set(Z_BUILD_FLAGS "-DZENOH_LINUX=1 -DZENOH_C_STANDARD=99 -DZ_LINK_TCP=1 -DZ_LINK_UDP_MULTICAST=1 -DZ_LINK_UDP_UNICAST=1 -DZ_SCOUTING_UDP=1 -DZ_MULTI_THREAD=1")
 
-set(EXTRA_LIBS zenohpico -pthread)
+# set(EXTRA_LIBS zenohpico -pthread)
 
 ##
+
+# set(BUILD_EXAMPLES OFF CACHE BOOL "Disables examples" FORCE)
+# set(BUILD_TESTING OFF CACHE BOOL "Disables tests" FORCE)
+
 # include(FetchContent)
 # FetchContent_Declare(
 #     zenoh
-#     GIT_REPOSITORY https://github.com/eclipse-zenoh/zenoh-c
-#     GIT_TAG 0.7.0-rc
+#     GIT_REPOSITORY https://github.com/gabrik/zenoh-c
+#     GIT_TAG build-flags
+
 # )
-# FetchContent_MakeAvailable(zenoh)
 
-
-
-# set(EXTRA_LIBS zenoh pthread)
-
+# FetchContent_GetProperties(zenoh)
+# if (NOT zenoh_POPULATED)
+#     FetchContent_Populate(zenoh)
+# endif ()
+# add_subdirectory(${zenoh_SOURCE_DIR} ${zenoh_BINARY_DIR})
+# include_directories(${zenoh_SOURCE_DIR}/include)
+find_library(ZENOH zenohc)
 
 add_library(quadruped_controller src/quadruped_controller.cpp)
 add_library(message_relay src/message_relay.cpp)
 add_library(state_estimation src/state_estimation.cpp)
 
+
+set(EXTRA_LIBS ${ZENOH} pthread)
+
 ## Adding target link properties quadruped_controller
-set_target_properties(quadruped_controller PROPERTIES COMPILE_FLAGS ${Z_BUILD_FLAGS} )
+# set_target_properties(quadruped_controller PROPERTIES COMPILE_FLAGS ${Z_BUILD_FLAGS} )
 target_link_libraries(quadruped_controller quadruped_controller ${EXTRA_LIBS})
 
 add_executable(quadruped_controller_node src/quadruped_controller_node.cpp)
 
 ## Adding build flags quadruped_controller_node
-set_target_properties(quadruped_controller_node PROPERTIES COMPILE_FLAGS ${Z_BUILD_FLAGS} )
+# set_target_properties(quadruped_controller_node PROPERTIES COMPILE_FLAGS ${Z_BUILD_FLAGS} )
 target_link_libraries(quadruped_controller_node quadruped_controller ${catkin_LIBRARIES})
 
 

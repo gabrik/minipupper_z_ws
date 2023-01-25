@@ -15,19 +15,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-
-# Zenoh Pico
-include_directories(${CMAKE_SOURCE_DIR}/zenoh-pico/include)
-set(Z_BUILD_FLAGS "-DZENOH_LINUX=1 -DZENOH_C_STANDARD=99 -DZ_LINK_TCP=1 -DZ_LINK_UDP_MULTICAST=1 -DZ_LINK_UDP_UNICAST=1 -DZ_SCOUTING_UDP=1 -DZ_MULTI_THREAD=1")
-set(EXTRA_LIBS zenohpico -pthread)
-
-##
+set(EXTRA_LIBS -pthread)
 
 # Nodelet library
 add_library(${PROJECT_NAME}_nodelet src/velocity_smoother_nodelet.cpp)
 
 ## Adding target link properties quadruped_controller
-set_target_properties(${PROJECT_NAME}_nodelet PROPERTIES COMPILE_FLAGS ${Z_BUILD_FLAGS} )
 target_link_libraries(${PROJECT_NAME}_nodelet ${EXTRA_LIBS} ${catkin_LIBRARIES})
 
 add_dependencies(${PROJECT_NAME}_nodelet ${PROJECT_NAME}_gencfg)

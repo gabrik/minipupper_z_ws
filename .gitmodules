@@ -1,4 +1,0 @@
-[submodule "src/zenoh-pico"]
-	path = src/zenoh-pico
-	url = https://github.com/eclipse-zenoh/zenoh-pico
-	branch = 0.7.0-rc

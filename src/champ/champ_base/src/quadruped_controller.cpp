@@ -101,33 +101,35 @@ QuadrupedController::QuadrupedController(ros::NodeHandle *nh, ros::NodeHandle *p
     ROS_INFO("Zenoh Mode is : %s", this->mode.c_str());
     ROS_INFO("Zenoh locator is: %s", this->locator.c_str());
 
-
-
     z_owned_config_t z_config = z_config_default();
 
     // Default config for the time being
-    zp_config_insert(z_config_loan(&z_config), Z_CONFIG_MODE_KEY, z_string_make(this->mode.c_str()));
-    zp_config_insert(z_config_loan(&z_config), Z_CONFIG_PEER_KEY, z_string_make(this->locator.c_str()));
+    zc_config_insert_json(z_loan(z_config), Z_CONFIG_MODE_KEY, this->mode.c_str());
+
+    if (!this->locator.empty()) {
+        zc_config_insert_json(z_loan(z_config), Z_CONFIG_CONNECT_KEY, this->locator.c_str());
+    }
+
 
     ROS_INFO("Opening session...\n");
 
 
-    this->z_session = z_open(z_config_move(&z_config));
-    if (!z_session_check(&this->z_session)) {
+    this->z_session = z_open(z_move(z_config));
+    if (!z_check(this->z_session)) {
       ROS_ERROR("Unable to open session!\n");
         exit(-1);
     }
 
     // Start read and lease tasks for zenoh-pico
-    if (zp_start_read_task(z_session_loan(&this->z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&this->z_session), NULL) < 0) {
-        ROS_ERROR("Unable to start read and lease tasks");
-        exit(-1);
-    }
+    // if (zp_start_read_task(z_session_loan(&this->z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&this->z_session), NULL) < 0) {
+    //     ROS_ERROR("Unable to start read and lease tasks");
+    //     exit(-1);
+    // }
 
     // joint_group_position_controller/command publisher
 
-    this->z_joint_commands_publisher = z_declare_publisher(z_session_loan(&this->z_session), z_keyexpr(joint_control_topic.c_str()), NULL);
-    if (!z_publisher_check(&this->z_joint_commands_publisher)) {
+    this->z_joint_commands_publisher = z_declare_publisher(z_loan(this->z_session), z_keyexpr(joint_control_topic.c_str()), NULL);
+    if (!z_check(this->z_joint_commands_publisher)) {
             ROS_ERROR("Unable to declare publisher for \"joint_group_position_controller/command\"!\n");
             exit(-1);
     }
@@ -230,7 +232,7 @@ void QuadrupedController::publishJoints_(float target_joints[12])
         z_publisher_put_options_t options = z_publisher_put_options_default();
         options.encoding = z_encoding(Z_ENCODING_PREFIX_APP_OCTET_STREAM, NULL);
 
-        z_publisher_put(z_publisher_loan(&this->z_joint_commands_publisher), (const uint8_t*) buffer, (size_t) ser_size, &options);
+        z_publisher_put(z_loan(this->z_joint_commands_publisher), (const uint8_t*) buffer, (size_t) ser_size, &options);
         // ROS_WARN("Sent on Zenoh - joint commands\n");
         //
 

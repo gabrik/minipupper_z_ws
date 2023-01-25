@@ -26,11 +26,7 @@
 #include <thread>
 
 
-
-
-extern "C" {
-  #include "zenoh-pico.h"
-}
+#include <zenoh.h>
 
 void  ToLaserscanMessagePublish(ldlidar::Points2D& src, double lidar_spin_freq,
     LaserScanSetting& setting, z_owned_publisher_t& z_lidar_pub);
@@ -102,8 +98,7 @@ int main(int argc, char **argv) {
     .default_value(std::string("client"));
 
   program.add_argument("--connect")
-    .help("zenoh locator to connect")
-    .default_value(std::string("tcp/127.0.0.1:7447"));
+    .help("zenoh locator to connect");
 
 
   try {
@@ -171,24 +166,25 @@ int main(int argc, char **argv) {
     z_owned_config_t z_config = z_config_default();
 
     // Default config for the time being
-    zp_config_insert(z_config_loan(&z_config), Z_CONFIG_MODE_KEY, z_string_make(mode.c_str()));
-    zp_config_insert(z_config_loan(&z_config), Z_CONFIG_PEER_KEY, z_string_make(locator.c_str()));
+    zc_config_insert_json(z_loan(z_config), Z_CONFIG_MODE_KEY, mode.c_str());
+    if (!locator.empty()) {
+      zc_config_insert_json(z_loan(z_config), Z_CONFIG_CONNECT_KEY, locator.c_str());
+    }
 
-
-    z_session = z_open(z_config_move(&z_config));
-    if (!z_session_check(&z_session)) {
+    z_session = z_open(z_move(z_config));
+    if (!z_check(z_session)) {
       printf("Unable to open session!\n");
         exit(EXIT_FAILURE);
     }
 
     // Start read and lease tasks for zenoh-pico
-    if (zp_start_read_task(z_session_loan(&z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&z_session), NULL) < 0) {
-        printf("Unable to start read and lease tasks\n");
-        exit(EXIT_FAILURE);
-    }
+    // if (zp_start_read_task(z_session_loan(&z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&z_session), NULL) < 0) {
+    //     printf("Unable to start read and lease tasks\n");
+    //     exit(EXIT_FAILURE);
+    // }
 
-    z_scan_publisher = z_declare_publisher(z_session_loan(&z_session), z_keyexpr(topic_name.c_str()), NULL);
-    if (!z_publisher_check(&z_scan_publisher)) {
+    z_scan_publisher = z_declare_publisher(z_loan(z_session), z_keyexpr(topic_name.c_str()), NULL);
+    if (!z_check(z_scan_publisher)) {
             printf("Unable to declare publisher for: %s!\n", topic_name.c_str());
             exit(EXIT_FAILURE);
     }

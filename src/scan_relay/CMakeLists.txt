@@ -10,6 +10,8 @@ else()
   set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra ${CMAKE_CXX_FLAGS}")
   message(STATUS "optional:-std=c++11 -Wall -Wextra ")
 endif()
+set(CMAKE_C_STANDARD 11)
+
 
 # set (CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}  -g ")
 # set (CMAKE_VERBOSE_MAKEFILE ON)
@@ -25,7 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ldlidar
-#  CATKIN_DEPENDS other_catkin_pkg
+# CATKIN_DEPENDS
 #  DEPENDS system_lib
 )
 
@@ -48,23 +50,16 @@ include_directories(
 
 file(GLOB  MAIN_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-# Zenoh Pico
-include_directories(${CMAKE_SOURCE_DIR}/zenoh-pico/include)
-set(Z_BUILD_FLAGS "-DZENOH_LINUX=1 -DZENOH_C_STANDARD=99 -DZ_LINK_TCP=1 -DZ_LINK_UDP_MULTICAST=1 -DZ_LINK_UDP_UNICAST=1 -DZ_SCOUTING_UDP=1 -DZ_MULTI_THREAD=1")
-set(EXTRA_LIBS zenohpico -pthread)
-
-##
-
+find_library(ZENOH zenohc)
+set(EXTRA_LIBS ${ZENOH} pthread)
 
 add_executable(${PROJECT_NAME}_node
   ${MAIN_SRC}
 )
 
 
-## Adding target link properties quadruped_controller
-set_target_properties(${PROJECT_NAME}_node PROPERTIES COMPILE_FLAGS ${Z_BUILD_FLAGS} )
-target_link_libraries(${PROJECT_NAME}_node ${EXTRA_LIBS} ${catkin_LIBRARIES})
 
+target_link_libraries(${PROJECT_NAME}_node ${EXTRA_LIBS} ${catkin_LIBRARIES})
 
 
 install(TARGETS ${PROJECT_NAME}_node

@@ -145,14 +145,7 @@ file(GLOB  LDLIDAR_DRI_SERIAL ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/src/ser
 file(GLOB  MAIN_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/publish_node/*.cpp)
 file(GLOB  LISTEN_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/listen_node/*.cpp)
 
-
-# Zenoh Pico
-include_directories(${CMAKE_SOURCE_DIR}/zenoh-pico/include)
-set(Z_BUILD_FLAGS "-DZENOH_LINUX=1 -DZENOH_C_STANDARD=99 -DZ_LINK_TCP=1 -DZ_LINK_UDP_MULTICAST=1 -DZ_LINK_UDP_UNICAST=1 -DZ_SCOUTING_UDP=1 -DZ_MULTI_THREAD=1")
-set(EXTRA_LIBS zenohpico -pthread)
-
-##
-
+set(EXTRA_LIBS -pthread)
 
 add_executable(${PROJECT_NAME}_node
   ${MAIN_SRC}
@@ -164,10 +157,6 @@ add_executable(${PROJECT_NAME}_node
   ${LDLIDAR_DRI_SERIAL}
 )
 
-# target_link_libraries(${PROJECT_NAME}_node pthread ${catkin_LIBRARIES})
-
-## Adding target link properties quadruped_controller
-set_target_properties(${PROJECT_NAME}_node PROPERTIES COMPILE_FLAGS ${Z_BUILD_FLAGS} )
 target_link_libraries(${PROJECT_NAME}_node ${EXTRA_LIBS} ${catkin_LIBRARIES})
 
 add_executable(${PROJECT_NAME}_listen_node

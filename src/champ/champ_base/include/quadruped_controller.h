@@ -48,10 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 
-
-extern "C" {
-  #include "zenoh-pico.h"
-}
+#include <zenoh.h>
 
 // void z_cmd_vel_cb(const z_sample_t *sample, void *ctx);
 

@@ -22,13 +22,8 @@
 #include "ldlidar_driver.h"
 
 
-
-extern "C" {
-  #include "zenoh-pico.h"
-}
-
 void  ToLaserscanMessagePublish(ldlidar::Points2D& src, double lidar_spin_freq,
-    LaserScanSetting& setting, ros::Publisher& lidarpub, z_owned_publisher_t& z_lidar_pub);
+    LaserScanSetting& setting, ros::Publisher& lidarpub);
 
 uint64_t GetSystemTimeStamp(void);
 
@@ -45,8 +40,6 @@ int main(int argc, char **argv) {
 
   std::string mode;
   std::string locator;
-  z_owned_session_t z_session;
-  z_owned_publisher_t z_scan_publisher;
 
   nh_private.getParam("product_name", product_name);
 	nh_private.getParam("topic_name", topic_name);
@@ -99,39 +92,10 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-    nh_private.param<std::string>("mode", mode, "client");
-    nh_private.param<std::string>("locator", locator, "tcp/192.168.86.131:7447");
+  nh_private.param<std::string>("mode", mode, "client");
+  nh_private.param<std::string>("locator", locator, "tcp/192.168.86.131:7447");
 
-    z_owned_config_t z_config = z_config_default();
-
-    // Default config for the time being
-    zp_config_insert(z_config_loan(&z_config), Z_CONFIG_MODE_KEY, z_string_make(mode.c_str()));
-    zp_config_insert(z_config_loan(&z_config), Z_CONFIG_PEER_KEY, z_string_make(locator.c_str()));
-
-
-    z_session = z_open(z_config_move(&z_config));
-    if (!z_session_check(&z_session)) {
-      ROS_ERROR("Unable to open session!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Start read and lease tasks for zenoh-pico
-    if (zp_start_read_task(z_session_loan(&z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&z_session), NULL) < 0) {
-        ROS_ERROR("Unable to start read and lease tasks");
-        exit(EXIT_FAILURE);
-    }
-
-    z_scan_publisher = z_declare_publisher(z_session_loan(&z_session), z_keyexpr(topic_name.c_str()), NULL);
-    if (!z_publisher_check(&z_scan_publisher)) {
-            ROS_ERROR("Unable to declare publisher for: %s!\n", topic_name.c_str());
-            exit(EXIT_FAILURE);
-    }
-
-
-
-
-  ros::Publisher lidar_pub;
-      // = nh.advertise<sensor_msgs::LaserScan>(topic_name, 10);  // create a ROS topic
+  ros::Publisher lidar_pub = nh.advertise<sensor_msgs::LaserScan>(topic_name, 10);  // create a ROS topic
 
   ros::Rate r(10); //10hz
   ldlidar::Points2D laser_scan_points;
@@ -143,7 +107,7 @@ int main(int argc, char **argv) {
     switch (ldlidarnode->GetLaserScanData(laser_scan_points, 1500)){
       case ldlidar::LidarStatus::NORMAL:
         ldlidarnode->GetLidarScanFreq(lidar_scan_freq);
-        ToLaserscanMessagePublish(laser_scan_points, lidar_scan_freq, setting, lidar_pub, z_scan_publisher );
+        ToLaserscanMessagePublish(laser_scan_points, lidar_scan_freq, setting, lidar_pub);
         break;
       case ldlidar::LidarStatus::DATA_TIME_OUT:
         ROS_ERROR("get ldlidar data is time out, please check your lidar device.");
@@ -166,7 +130,7 @@ int main(int argc, char **argv) {
 }
 
 void  ToLaserscanMessagePublish(ldlidar::Points2D& src, double lidar_spin_freq,
-    LaserScanSetting& setting, ros::Publisher& lidarpub, z_owned_publisher_t& z_lidar_pub) {
+    LaserScanSetting& setting, ros::Publisher& lidarpub) {
   float angle_min, angle_max, range_min, range_max, angle_increment;
   float scan_time;
   ros::Time start_scan_time;
@@ -262,18 +226,7 @@ void  ToLaserscanMessagePublish(ldlidar::Points2D& src, double lidar_spin_freq,
       }
     }
 
-    // Here we serialize and publish over zenoh
-    uint32_t ser_size = ros::serialization::serializationLength(output);
-    uint8_t *buffer = (uint8_t*) std::calloc((size_t)ser_size, sizeof(uint8_t));
-    ros::serialization::OStream ostream(buffer, ser_size);
-    ros::serialization::serialize(ostream, output);
-
-     z_publisher_put_options_t options = z_publisher_put_options_default();
-    options.encoding = z_encoding(Z_ENCODING_PREFIX_APP_OCTET_STREAM, NULL);
-
-    z_publisher_put(z_publisher_loan(&z_lidar_pub), (const uint8_t*) buffer, (size_t) ser_size, &options);
-
-    // lidarpub.publish(output);
+    lidarpub.publish(output);
     end_scan_time = start_scan_time;
 
 
