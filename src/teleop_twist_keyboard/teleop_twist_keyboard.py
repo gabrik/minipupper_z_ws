@@ -235,7 +235,7 @@ if __name__=="__main__":
 
 
     # z_mode = rospy.get_param("~zenoh_mode", "client")
-    # z_locator = rospy.get_param("~zenoh_locator","tcp/192.168.86.131:7447")
+    # z_locator = rospy.get_param("~zenoh_locator","")
 
 
     # z_config = zenoh.Config()

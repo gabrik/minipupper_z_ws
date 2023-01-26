@@ -91,7 +91,6 @@ def listener():
     parser.add_argument('-m','--mode', help='Zenoh mode', required=False, type=str, default='client')
     parser.add_argument('-c','--connect', help='Zenoh connect locator', required=False, type=str)
 
-
     args, unknown = parser.parse_known_args()
     args = vars(args)
 

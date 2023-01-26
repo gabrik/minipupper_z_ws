@@ -20,7 +20,7 @@
     <arg name="lidar_connected"        default="true" /> <!-- Flag useful to launch lidar launch file. -->
 
     <arg name="mode" default="client"/>
-    <arg name="locator" default="tcp/192.168.86.131:7447"/>
+    <arg name="locator" default=""/>
 
     <arg if="$(eval arg('robot_name') == '/')"  name="frame_prefix" value="" />
     <arg unless="$(eval arg('robot_name') == '/')" name="frame_prefix" value="$(arg robot_name)/" />

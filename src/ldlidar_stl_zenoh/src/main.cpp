@@ -23,6 +23,7 @@
 #include <argparse/argparse.hpp>
 #include <cstdio>
 #include <chrono>
+#include <string>
 #include <thread>
 
 
@@ -120,7 +121,13 @@ int main(int argc, char **argv) {
   setting.angle_crop_min = program.get<double>("--angle_crop_min");
   setting.angle_crop_max = program.get<double>("--angle_crop_max");
   mode = program.get<std::string>("--mode");
-  locator = program.get<std::string>("--connect");
+
+  try {
+    locator = program.get<std::string>("--connect");
+  }
+  catch (const std::runtime_error& err) {
+    locator = std::string("");
+  }
 
 
 
@@ -134,7 +141,8 @@ int main(int argc, char **argv) {
   printf("<laser_scan_dir>: %s\n", (setting.laser_scan_dir?"Counterclockwise":"Clockwise"));
   printf("<enable_angle_crop_func>: %s\n", (setting.enable_angle_crop_func?"true":"false"));
   printf("<angle_crop_min>: %f\n", setting.angle_crop_min);
-  printf("<angle_crop_max>: %f\n", setting.angle_crop_max);
+  printf("<mode>: %s\n", mode.c_str());
+  printf("<locator>: %s\n", locator.c_str());
 
   if (product_name == "LDLiDAR_LD06") {
     type_name = ldlidar::LDType::LD_06;
@@ -169,6 +177,8 @@ int main(int argc, char **argv) {
     zc_config_insert_json(z_loan(z_config), Z_CONFIG_MODE_KEY, mode.c_str());
     if (!locator.empty()) {
       zc_config_insert_json(z_loan(z_config), Z_CONFIG_CONNECT_KEY, locator.c_str());
+    } else {
+      printf("No connecting locator I'm going to scout!\n");
     }
 
     z_session = z_open(z_move(z_config));
@@ -176,6 +186,8 @@ int main(int argc, char **argv) {
       printf("Unable to open session!\n");
         exit(EXIT_FAILURE);
     }
+
+    printf("Zenoh Session is open!\n");
 
     // Start read and lease tasks for zenoh-pico
     // if (zp_start_read_task(z_session_loan(&z_session), NULL) < 0 || zp_start_lease_task(z_session_loan(&z_session), NULL) < 0) {
@@ -188,6 +200,8 @@ int main(int argc, char **argv) {
             printf("Unable to declare publisher for: %s!\n", topic_name.c_str());
             exit(EXIT_FAILURE);
     }
+
+    printf("Zenoh publisher declared!\n");
 
 
   ldlidar::Points2D laser_scan_points;

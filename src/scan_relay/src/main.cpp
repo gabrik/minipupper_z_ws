@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 
   nh_private.param<std::string>("topic_name", topic_name, "scan");
   nh_private.param<std::string>("mode", mode, "client");
-  nh_private.param<std::string>("locator", locator, "tcp/192.168.86.131:7447");
+  nh_private.param<std::string>("locator", locator, "");
 
   z_owned_config_t z_config = z_config_default();
 

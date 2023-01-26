@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
   }
 
   nh_private.param<std::string>("mode", mode, "client");
-  nh_private.param<std::string>("locator", locator, "tcp/192.168.86.131:7447");
+  nh_private.param<std::string>("locator", locator, "");
 
   ros::Publisher lidar_pub = nh.advertise<sensor_msgs::LaserScan>(topic_name, 10);  // create a ROS topic
 
